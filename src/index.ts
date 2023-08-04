@@ -2,7 +2,8 @@ import Web3, { Web3BaseProvider } from "web3";
 import { Web3Subscription } from "web3-core";
 import { TransactionsPool } from "./pool";
 import EventEmitter from "events";
-import { TransactionWithMetadata } from "./interfaces";
+import { ExplorerConstructorParameters, TransactionWithMetadata } from "./interfaces";
+import { typeGuards } from "./helpers";
 
 export class Explorer extends EventEmitter {
   web3: Web3;
@@ -12,12 +13,24 @@ export class Explorer extends EventEmitter {
     error: Error;
     connected: number;
   }>[] = [];
-  websocketProvider: Web3BaseProvider<unknown>;
+  websocketProvider: Web3BaseProvider;
 
-  constructor(url: string) {
+  constructor(parameters: ExplorerConstructorParameters) {
     super();
-    this.websocketProvider = new Web3.providers.WebsocketProvider(url);
-    this.web3 = new Web3(this.websocketProvider);
+    if (typeGuards.isExplorerConstructorUrlParameters(parameters)) {
+      const { url } = parameters;
+      this.websocketProvider = new Web3.providers.WebsocketProvider(url);
+      this.web3 = new Web3(this.websocketProvider);
+    } else if (typeGuards.isExplorerConstructorWeb3Parameters(parameters)) {
+      const { web3 } = parameters;
+      if (!web3.provider) throw Error("Provided Web3 instance has no provider.");
+      this.websocketProvider = web3.provider;
+      this.web3 = web3;
+    } else {
+      const { websocketProvider } = parameters;
+      this.websocketProvider = websocketProvider;
+      this.web3 = new Web3(this.websocketProvider);
+    }
   }
 
   async start() {
