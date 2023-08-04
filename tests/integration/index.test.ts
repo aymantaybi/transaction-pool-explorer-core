@@ -11,6 +11,7 @@ const explorer = new Explorer({ url });
 
 describe("Integration Test", () => {
   beforeAll(async () => {
+    console.log('My Secret Key:', process.env.WEBSOCKET_RPC_ENDPOINT);
     await explorer.start();
   });
   afterAll(async () => {
