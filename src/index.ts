@@ -2,18 +2,18 @@ import Web3, { Web3BaseProvider } from "web3";
 import { Web3Subscription } from "web3-core";
 import { TransactionsPool } from "./pool";
 import EventEmitter from "events";
-import { ExplorerConstructorParameters, TransactionWithMetadata } from "./interfaces";
+import { ExplorerConstructorParameters, TransactionMetadata, TransactionWithMetadata } from "./interfaces";
 import { typeGuards } from "./helpers";
 
 export class Explorer extends EventEmitter {
+  websocketProvider: Web3BaseProvider;
   web3: Web3;
-  private pendingTransactionsPool = new TransactionsPool();
+  pendingTransactionsPool = new TransactionsPool();
   private currentBlockNumber = BigInt(0);
   private subscriptions: Web3Subscription<{
     error: Error;
     connected: number;
   }>[] = [];
-  websocketProvider: Web3BaseProvider;
 
   constructor(parameters: ExplorerConstructorParameters) {
     super();
@@ -73,8 +73,24 @@ export class Explorer extends EventEmitter {
 export declare interface Explorer {
   on(event: "transactionAdded", listener: (data: TransactionWithMetadata) => void): this;
   on(event: "transactionReplaced", listener: (data: TransactionWithMetadata) => void): this;
-  on(event: "transactionsConfirmed", listener: (data: TransactionWithMetadata[]) => void): this;
+  on(
+    event: "transactionsConfirmed",
+    listener: (
+      data: (TransactionWithMetadata & {
+        metadata: TransactionMetadata & {
+          confirmedAt: number;
+        };
+      })[]
+    ) => void
+  ): this;
   emit(eventName: "transactionAdded", data: TransactionWithMetadata): boolean;
   emit(eventName: "transactionReplaced", data: TransactionWithMetadata): boolean;
-  emit(eventName: "transactionsConfirmed", data: TransactionWithMetadata[]): boolean;
+  emit(
+    eventName: "transactionsConfirmed",
+    data: (TransactionWithMetadata & {
+      metadata: TransactionMetadata & {
+        confirmedAt: number;
+      };
+    })[]
+  ): boolean;
 }
