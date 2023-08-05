@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
-import { Explorer } from "../../src/";
+import { Explorer } from "../../src";
 
 const { WEBSOCKET_RPC_ENDPOINT } = process.env;
 
