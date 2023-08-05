@@ -1,7 +1,11 @@
 import { Block, Transaction, TransactionMetadata, TransactionWithMetadata, TransactionsTree } from "./interfaces";
 
 export class TransactionsPool {
-  private transactionsTree: TransactionsTree = {};
+  private transactionsTree: TransactionsTree;
+
+  constructor(transactionsTree: TransactionsTree = {}) {
+    this.transactionsTree = transactionsTree;
+  }
 
   addTransaction(transaction: Transaction, timestamp: number): TransactionWithMetadata {
     const { from, nonce } = transaction;
