@@ -33,5 +33,6 @@ export function sendVoidTransaction(web3: Web3, nonce: bigint, gasPrice = web3.u
     gasPrice,
     gasLimit,
   };
-  return web3.eth.sendTransaction(transactionData);
+  const transaction = web3.eth.sendTransaction(transactionData);
+  return transaction;
 }

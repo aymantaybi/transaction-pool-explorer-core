@@ -13,6 +13,7 @@ const websocketProvider = new Web3.providers.WebsocketProvider(WEBSOCKET_RPC_END
 const web3 = new Web3(websocketProvider);
 const explorer = new Explorer({ web3 });
 
+web3.eth.transactionBlockTimeout = 10;
 web3.eth.accounts.wallet.add(PRIVATE_KEY);
 
 describe("Integration Test", () => {
@@ -20,7 +21,10 @@ describe("Integration Test", () => {
     await explorer.start();
   });
   afterAll(async () => {
-    await explorer.stop(); 
+    await explorer.stop();
+    await web3.eth.clearSubscriptions();
+    websocketProvider.reset();
+    websocketProvider.disconnect();
   });
   test("Listen To Added Transactions", (done) => {
     explorer.on("transactionAdded", (data) => {
@@ -42,22 +46,30 @@ describe("Integration Test", () => {
     });
   }, 60000);
   test("Listen To Replaced Transactions", async () => {
+    const txs: any = [];
     const { address } = web3.eth.accounts.wallet[0];
     const nonce = await web3.eth.getTransactionCount(address);
-    sendVoidTransaction(web3, nonce);
+    const tx1 = sendVoidTransaction(web3, nonce);
+    txs.push(tx1);
     const originalTransaction = await waitForEvent<TransactionWithMetadata>(
       explorer,
       "transactionAdded",
       (data) => data.from.toLowerCase() === address.toLowerCase(),
       10000
     );
-    sendVoidTransaction(web3, nonce, web3.utils.toWei(5, "Gwei"));
+    const tx2 = sendVoidTransaction(web3, nonce, web3.utils.toWei(5, "Gwei"));
+    txs.push(tx2);
     const replacementTransaction = await waitForEvent<TransactionWithMetadata>(
       explorer,
       "transactionReplaced",
       (data) => data.from.toLowerCase() === address.toLowerCase(),
       10000
     );
+    try {
+      await Promise.all(txs);
+    } catch (error) {
+      console.log(error);
+    }
     expect(originalTransaction).toBeDefined();
     expect(replacementTransaction).toBeDefined();
     expect(replacementTransaction?.metadata.original).toEqual(originalTransaction);
