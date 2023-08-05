@@ -19,7 +19,20 @@ describe("Integration Test", () => {
   });
   test("Listen To Added Transactions", (done) => {
     explorer.on("transactionAdded", (data) => {
-      expect(data).toHaveProperty("metadata");
+      const { hash, from, nonce } = data;
+      const transaction = explorer.pendingTransactionsPool.getTransaction(from, nonce);
+      expect(transaction?.hash).toBe(hash);
+      done();
+    });
+  }, 60000);
+  test("Listen To Confirmed Transactions", (done) => {
+    explorer.on("transactionsConfirmed", (data) => {
+      for (const transaction of data) {
+        const { from, nonce, metadata } = transaction;
+        expect(metadata.submittedAt).toBeDefined();
+        expect(metadata.confirmedAt).toBeDefined();
+        expect(explorer.pendingTransactionsPool.getTransaction(from, nonce)).toBeUndefined();
+      }
       done();
     });
   }, 60000);
