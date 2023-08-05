@@ -1,4 +1,3 @@
-import { type } from "os";
 import Web3, { Web3BaseProvider } from "web3";
 import { Web3Eth } from "web3-eth/src/web3_eth";
 

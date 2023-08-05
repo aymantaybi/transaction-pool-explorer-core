@@ -3,5 +3,5 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   setupFiles: ["dotenv/config"],
-  modulePathIgnorePatterns: ["__fixtures__"],
+  modulePathIgnorePatterns: ["__fixtures__", "__utils__"],
 };
