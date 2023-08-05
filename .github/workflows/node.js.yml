@@ -16,6 +16,7 @@ jobs:
 
     env:
       WEBSOCKET_RPC_ENDPOINT: ${{ secrets.WEBSOCKET_RPC_ENDPOINT }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
     steps:
     - uses: actions/checkout@v3
