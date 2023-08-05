@@ -2,7 +2,7 @@ import Web3, { Web3BaseProvider } from "web3";
 import { Web3Subscription } from "web3-core";
 import { TransactionsPool } from "./entities";
 import EventEmitter from "events";
-import { ExplorerConstructorParameters, TransactionMetadata, TransactionWithMetadata } from "./interfaces";
+import { ConfirmedTransactionWithMetadata, ExplorerConstructorParameters, TransactionMetadata, TransactionWithMetadata } from "./interfaces";
 import { typeGuards } from "./helpers";
 
 export class Explorer extends EventEmitter {
@@ -48,8 +48,9 @@ export class Explorer extends EventEmitter {
     const subscription = await this.web3.eth.subscribe("pendingTransactions");
     subscription.on("data", async (transactionHash) => {
       const timestamp = Date.now();
+      const blockNumber = Number(this.currentBlockNumber);
       const transaction = await this.web3.eth.getTransaction(transactionHash);
-      const addedTransaction = this.pendingTransactionsPool.addTransaction(transaction, timestamp);
+      const addedTransaction = this.pendingTransactionsPool.addTransaction(transaction, { timestamp, blockNumber });
       this.emit("transactionAdded", addedTransaction);
       if (!addedTransaction.metadata.original) return;
       this.emit("transactionReplaced", addedTransaction);
@@ -73,24 +74,8 @@ export class Explorer extends EventEmitter {
 export declare interface Explorer {
   on(event: "transactionAdded", listener: (data: TransactionWithMetadata) => void): this;
   on(event: "transactionReplaced", listener: (data: TransactionWithMetadata) => void): this;
-  on(
-    event: "transactionsConfirmed",
-    listener: (
-      data: (TransactionWithMetadata & {
-        metadata: TransactionMetadata & {
-          confirmedAt: number;
-        };
-      })[]
-    ) => void
-  ): this;
+  on(event: "transactionsConfirmed", listener: (data: ConfirmedTransactionWithMetadata[]) => void): this;
   emit(eventName: "transactionAdded", data: TransactionWithMetadata): boolean;
   emit(eventName: "transactionReplaced", data: TransactionWithMetadata): boolean;
-  emit(
-    eventName: "transactionsConfirmed",
-    data: (TransactionWithMetadata & {
-      metadata: TransactionMetadata & {
-        confirmedAt: number;
-      };
-    })[]
-  ): boolean;
+  emit(eventName: "transactionsConfirmed", data: ConfirmedTransactionWithMetadata[]): boolean;
 }

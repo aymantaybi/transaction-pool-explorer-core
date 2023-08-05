@@ -1,4 +1,4 @@
-import { Block, Transaction, TransactionMetadata, TransactionWithMetadata, TransactionsTree } from "../interfaces";
+import { Block, TemporalReference, Transaction, TransactionMetadata, TransactionWithMetadata, TransactionsTree } from "../interfaces";
 
 export class TransactionsPool {
   private transactionsTree: TransactionsTree;
@@ -7,11 +7,11 @@ export class TransactionsPool {
     this.transactionsTree = transactionsTree;
   }
 
-  addTransaction(transaction: Transaction, timestamp: number): TransactionWithMetadata {
+  addTransaction(transaction: Transaction, temporalReference: TemporalReference): TransactionWithMetadata {
     const { from, nonce } = transaction;
     this.transactionsTree[from] = this.transactionsTree[from] || {};
     const original = this.transactionsTree[from][nonce];
-    this.transactionsTree[from][nonce] = { ...transaction, metadata: { submittedAt: timestamp, original } };
+    this.transactionsTree[from][nonce] = { ...transaction, metadata: { submittedAt: temporalReference, original } };
     return this.transactionsTree[from][nonce];
   }
 
@@ -27,16 +27,17 @@ export class TransactionsPool {
   }
 
   removeConfirmedTransactions(block: Block) {
-    const confirmedTransactions: Array<TransactionWithMetadata & { metadata: TransactionMetadata & { confirmedAt: number } }> = [];
-    const blockTimestamp = Number(block.timestamp) * 1000;
+    const confirmedTransactions: Array<TransactionWithMetadata & { metadata: TransactionMetadata & { confirmedAt: TemporalReference } }> = [];
+    const timestamp = Number(block.timestamp) * 1000;
+    const blockNumber = Number(block.number);
     for (const transaction of block.transactions) {
       if (typeof transaction === "string") continue;
       const { from, nonce } = transaction;
       const removedTransaction = this.removeTransaction(from, String(nonce));
       if (removedTransaction) {
-        const confirmedTransaction: TransactionWithMetadata & { metadata: TransactionMetadata & { confirmedAt: number } } = {
+        const confirmedTransaction = {
           ...removedTransaction,
-          metadata: { ...removedTransaction.metadata, confirmedAt: blockTimestamp },
+          metadata: { ...removedTransaction.metadata, confirmedAt: { timestamp, blockNumber } },
         };
         confirmedTransactions.push(confirmedTransaction);
       }
