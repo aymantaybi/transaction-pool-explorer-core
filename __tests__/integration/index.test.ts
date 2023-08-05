@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "@jest/globals";
 import { Explorer } from "../../src";
 import Web3 from "web3";
-import { sendVoidTransaction, waitForEvent } from "../__utils__";
+import { sendVoidTransaction, waitForEvent, safeWaitForTransactions } from "../__utils__";
 import { TransactionWithMetadata } from "../../src/interfaces";
 
 const { WEBSOCKET_RPC_ENDPOINT, PRIVATE_KEY } = process.env;
@@ -13,7 +13,6 @@ const websocketProvider = new Web3.providers.WebsocketProvider(WEBSOCKET_RPC_END
 const web3 = new Web3(websocketProvider);
 const explorer = new Explorer({ web3 });
 
-web3.eth.transactionBlockTimeout = 10;
 web3.eth.accounts.wallet.add(PRIVATE_KEY);
 
 describe("Integration Test", () => {
@@ -33,7 +32,7 @@ describe("Integration Test", () => {
       expect(transaction?.hash).toBe(hash);
       done();
     });
-  }, 60000);
+  });
   test("Listen To Confirmed Transactions", (done) => {
     explorer.on("transactionsConfirmed", (data) => {
       for (const transaction of data) {
@@ -44,13 +43,11 @@ describe("Integration Test", () => {
       }
       done();
     });
-  }, 60000);
+  });
   test("Listen To Replaced Transactions", async () => {
-    const txs: any = [];
     const { address } = web3.eth.accounts.wallet[0];
     const nonce = await web3.eth.getTransactionCount(address);
     const tx1 = sendVoidTransaction(web3, nonce);
-    txs.push(tx1);
     const originalTransaction = await waitForEvent<TransactionWithMetadata>(
       explorer,
       "transactionAdded",
@@ -58,20 +55,16 @@ describe("Integration Test", () => {
       10000
     );
     const tx2 = sendVoidTransaction(web3, nonce, web3.utils.toWei(5, "Gwei"));
-    txs.push(tx2);
     const replacementTransaction = await waitForEvent<TransactionWithMetadata>(
       explorer,
       "transactionReplaced",
       (data) => data.from.toLowerCase() === address.toLowerCase(),
       10000
     );
-    try {
-      await Promise.all(txs);
-    } catch (error) {
-      console.log(error);
-    }
+    web3.eth.transactionBlockTimeout = 0;
+    await safeWaitForTransactions([tx1, tx2]);
     expect(originalTransaction).toBeDefined();
     expect(replacementTransaction).toBeDefined();
     expect(replacementTransaction?.metadata.original).toEqual(originalTransaction);
-  }, 60000);
+  });
 });

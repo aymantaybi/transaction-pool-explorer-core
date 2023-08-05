@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --forceExit",
-    "test:unit": "jest ./__tests__/unit --forceExit",
-    "test:integration": "jest ./__tests__/integration --forceExit"
+    "test": "jest",
+    "test:unit": "jest ./__tests__/unit",
+    "test:integration": "jest ./__tests__/integration"
   },
   "keywords": [],
   "author": "",
