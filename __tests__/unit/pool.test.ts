@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { TransactionsPool } from "../../src/pool";
+import { TransactionsPool } from "../../src/entities";
 import { transaction, transactionsTree, block } from "../__fixtures__/pool";
 
 const transactionsPool = new TransactionsPool(transactionsTree);

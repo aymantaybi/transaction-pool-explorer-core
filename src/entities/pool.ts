@@ -1,4 +1,4 @@
-import { Block, Transaction, TransactionMetadata, TransactionWithMetadata, TransactionsTree } from "./interfaces";
+import { Block, Transaction, TransactionMetadata, TransactionWithMetadata, TransactionsTree } from "../interfaces";
 
 export class TransactionsPool {
   private transactionsTree: TransactionsTree;

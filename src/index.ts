@@ -1,6 +1,6 @@
 import Web3, { Web3BaseProvider } from "web3";
 import { Web3Subscription } from "web3-core";
-import { TransactionsPool } from "./pool";
+import { TransactionsPool } from "./entities";
 import EventEmitter from "events";
 import { ExplorerConstructorParameters, TransactionMetadata, TransactionWithMetadata } from "./interfaces";
 import { typeGuards } from "./helpers";
