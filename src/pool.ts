@@ -23,14 +23,14 @@ export class TransactionsPool {
   }
 
   removeConfirmedTransactions(block: Block) {
-    const confirmedTransactions: TransactionWithMetadata[] = [];
+    const confirmedTransactions: Array<TransactionWithMetadata & { metadata: TransactionMetadata & { confirmedAt: number } }> = [];
     const blockTimestamp = Number(block.timestamp) * 1000;
     for (const transaction of block.transactions) {
       if (typeof transaction === "string") continue;
       const { from, nonce } = transaction;
       const removedTransaction = this.removeTransaction(from, String(nonce));
       if (removedTransaction) {
-        const confirmedTransaction: TransactionWithMetadata & { metadata: TransactionMetadata } = {
+        const confirmedTransaction: TransactionWithMetadata & { metadata: TransactionMetadata & { confirmedAt: number } } = {
           ...removedTransaction,
           metadata: { ...removedTransaction.metadata, confirmedAt: blockTimestamp },
         };
