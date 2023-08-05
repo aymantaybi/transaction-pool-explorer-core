@@ -9,21 +9,18 @@ const { WEBSOCKET_RPC_ENDPOINT, PRIVATE_KEY } = process.env;
 if (!WEBSOCKET_RPC_ENDPOINT || !WEBSOCKET_RPC_ENDPOINT.startsWith("ws")) throw Error('WEBSOCKET_RPC_ENDPOINT Env Variable Should Start With "ws"');
 if (!PRIVATE_KEY) throw Error("Missing PRIVATE_KEY Env Variable");
 
-const url = WEBSOCKET_RPC_ENDPOINT;
-
-const web3 = new Web3(new Web3.providers.WebsocketProvider(url));
+const websocketProvider = new Web3.providers.WebsocketProvider(WEBSOCKET_RPC_ENDPOINT);
+const web3 = new Web3(websocketProvider);
+const explorer = new Explorer({ web3 });
 
 web3.eth.accounts.wallet.add(PRIVATE_KEY);
-
-const explorer = new Explorer({ web3 });
 
 describe("Integration Test", () => {
   beforeAll(async () => {
     await explorer.start();
   });
   afterAll(async () => {
-    await explorer.stop();
-    explorer.websocketProvider.disconnect();
+    await explorer.stop(); 
   });
   test("Listen To Added Transactions", (done) => {
     explorer.on("transactionAdded", (data) => {

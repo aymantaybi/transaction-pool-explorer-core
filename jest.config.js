@@ -4,4 +4,5 @@ module.exports = {
   testEnvironment: "node",
   setupFiles: ["dotenv/config"],
   modulePathIgnorePatterns: ["__fixtures__", "__utils__"],
+  testTimeout: 60000,
 };
